@@ -1,94 +1,106 @@
 # =============================================================================
 # Corrigé — Module C1 : Configuration externe
-# Fichier cible dans jeu/ : jeu/config.json + jeu/config.py
+# Fichier cible dans jeu/ : jeu/config.py + jeu/config.json
 # =============================================================================
-#
-# NIVEAU 1 — Identifier les valeurs magiques et les nommer
+
+# NIVEAU 1 — Configuration minimale inline (sans fichier JSON externe)
 # -----------------------------------------------------------------------------
 
-# Valeurs magiques trouvées dans le code initial et leurs constantes
-VALEURS_MAGIQUES = [
-    (12,  'GRILLE_TAILLE',         'Taille de la grille (12×12)'),
-    (3,   'NB_DRONES',             'Nombre de drones initiaux'),
-    (20,  'BATTERIE_MAX',          'Batterie maximale d\'un drone'),
-    (30,  'TOURS_MAX',             'Nombre maximum de tours de jeu'),
-    (1,   'DISTANCE_MAX_DEPLACEMENT', 'Distance max de déplacement (Chebyshev)'),
-]
+CONFIG = {
+    'grille_taille':           12,
+    'nb_drones':               3,
+    'nb_tempetes':             2,
+    'nb_survivants':           5,
+    'batterie_max':            10,
+    'tours_max':               30,
+    'cout_deplacement':        1,
+    'cout_zone_x':             2,
+    'cout_transport_survivant': 1,
+    'recharge_stationnaire':   3,
+    'proba_tempete_auto':      0.5,
+    'intervalle_propagation_x': 5,
+}
 
-print("Valeurs magiques identifiées :")
-for valeur, nom, description in VALEURS_MAGIQUES:
-    print(f"  {valeur:4} → {nom:30s}  ({description})")
+GRILLE_TAILLE             = CONFIG['grille_taille']
+BATTERIE_MAX              = CONFIG['batterie_max']
+TOURS_MAX                 = CONFIG['tours_max']
+COUT_DEPLACEMENT          = CONFIG['cout_deplacement']
+COUT_ZONE_X               = CONFIG['cout_zone_x']
+COUT_TRANSPORT_SURVIVANT  = CONFIG['cout_transport_survivant']
+RECHARGE_STATIONNAIRE     = CONFIG['recharge_stationnaire']
+
+print(f"✅ Niveau 1 : GRILLE_TAILLE={GRILLE_TAILLE}, BATTERIE_MAX={BATTERIE_MAX}")
 
 
-# =============================================================================
-# NIVEAU 2 — Simuler config.json et config.py
+# NIVEAU 2 — Chargement robuste avec valeurs par défaut
 # -----------------------------------------------------------------------------
 
-import json  # noqa: E402
-
-# Simulation du contenu de config.json
-_CONFIG_JSON_CONTENU = """{
-  "grille_taille": 12,
-  "batterie_max": 20,
-  "nb_drones": 3,
-  "nb_survivants": 4,
-  "nb_tempetes": 2,
-  "tours_max": 30,
-  "max_deplacements_j1": 3,
-  "max_deplacements_j2": 2,
-  "cout_batterie_base": 1,
-  "cout_batterie_zone_x": 2,
-  "recharge_stationnaire": 3,
-  "proba_meteo": 0.5
-}"""
-
-# Chargement (une seule fois au démarrage)
-_cfg = json.loads(_CONFIG_JSON_CONTENU)
-
-# Constantes exposées
-GRILLE_TAILLE           = _cfg["grille_taille"]
-BATTERIE_MAX            = _cfg["batterie_max"]
-NB_DRONES               = _cfg["nb_drones"]
-NB_SURVIVANTS           = _cfg["nb_survivants"]
-NB_TEMPETES             = _cfg["nb_tempetes"]
-TOURS_MAX               = _cfg["tours_max"]
-MAX_DEPLACEMENTS_J1     = _cfg["max_deplacements_j1"]
-MAX_DEPLACEMENTS_J2     = _cfg["max_deplacements_j2"]
-COUT_BATTERIE_BASE      = _cfg["cout_batterie_base"]
-COUT_BATTERIE_ZONE_X    = _cfg["cout_batterie_zone_x"]
-RECHARGE_STATIONNAIRE   = _cfg["recharge_stationnaire"]
-PROBA_METEO             = _cfg["proba_meteo"]
+def charger_config_robuste(config_dict, cle, valeur_defaut):
+    """Retourne la valeur de la clé ou valeur_defaut si absente."""
+    return config_dict.get(cle, valeur_defaut)
 
 
-# =============================================================================
-# NIVEAU 3 — Version complète de config.py intégrable dans jeu/
+DEFAUTS = {
+    'grille_taille': 12,
+    'batterie_max': 10,
+    'tours_max': 30,
+    'cout_deplacement': 1,
+    'cout_zone_x': 2,
+    'cout_transport_survivant': 1,
+    'recharge_stationnaire': 3,
+    'proba_tempete_auto': 0.5,
+    'intervalle_propagation_x': 5,
+}
+
+cfg_incomplet = {'grille_taille': 16}
+for cle, defaut in DEFAUTS.items():
+    valeur = charger_config_robuste(cfg_incomplet, cle, defaut)
+    print(f'  {cle} = {valeur}')
+
+print("✅ Niveau 2 : chargement robuste OK")
+
+
+# NIVEAU 3 — Version complète intégrable dans jeu/config.py
 # -----------------------------------------------------------------------------
 
-def valider_config(cfg: dict) -> None:
+import json
+import os
+
+
+def charger_config(chemin=None):
     """
-    Vérifie que toutes les clés requises sont présentes dans la configuration.
-    Lève une KeyError explicite si une clé manque.
+    Charge le fichier config.json et retourne le dictionnaire de configuration.
+    Utilise les valeurs par défaut si une clé est absente.
 
     Args:
-        cfg (dict): dictionnaire de configuration chargé depuis config.json
+        chemin (str|None): chemin vers config.json. Si None, utilise le dossier
+                           du fichier courant.
 
-    Raises:
-        KeyError: si une clé requise est absente
+    Returns:
+        dict: configuration du jeu avec toutes les clés garanties.
     """
-    cles_requises = [
-        "grille_taille", "batterie_max", "nb_drones", "nb_survivants",
-        "nb_tempetes", "tours_max", "max_deplacements_j1", "max_deplacements_j2",
-        "cout_batterie_base", "cout_batterie_zone_x", "recharge_stationnaire",
-        "proba_meteo",
-    ]
-    for cle in cles_requises:
-        if cle not in cfg:
-            raise KeyError(
-                f"Clé manquante dans config.json : '{cle}'.\n"
-                f"Clés présentes : {list(cfg.keys())}"
-            )
+    if chemin is None:
+        chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+
+    if not os.path.exists(chemin):
+        print(f"[config] Fichier {chemin} introuvable. Valeurs par défaut utilisées.")
+        return dict(DEFAUTS)
+
+    with open(chemin, encoding='utf-8') as f:
+        cfg = json.load(f)
+
+    # Fusionner avec les défauts pour garantir toutes les clés
+    config_complete = dict(DEFAUTS)
+    config_complete.update(cfg)
+    return config_complete
 
 
-valider_config(_cfg)
-print(f"Config valide : grille {GRILLE_TAILLE}×{GRILLE_TAILLE}, "
-      f"{NB_DRONES} drones, {TOURS_MAX} tours max.")
+# Usage dans les autres modules :
+#   from config import GRILLE_TAILLE, BATTERIE_MAX, COUT_ZONE_X
+#
+# On n'appelle charger_config() qu'une seule fois, au niveau module :
+#   _cfg = charger_config()
+#   GRILLE_TAILLE = _cfg['grille_taille']
+#   ...
+
+print("✅ Niveau 3 : charger_config() prête pour jeu/config.py")
