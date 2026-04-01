@@ -1,0 +1,135 @@
+# Formation Drone Rescue — Parcours guidé
+
+> **Objectif** : partir de zéro et construire, étape par étape, le code complet
+> du jeu Drone Rescue situé dans `jeu/`.
+> Public cible : étudiants en 1ère année d'école d'ingénieurs, aucune
+> expérience de programmation requise.
+
+---
+
+## Présentation du parcours
+
+Ce dossier `formation/` est un **parcours pédagogique progressif** qui conduit
+l'étudiant de la compréhension des règles du jeu jusqu'à l'écriture complète
+du code source. Il complète les ressources existantes (`cours/`, `exercices/`)
+en ajoutant les couches manquantes : conception, algorithmique, architecture
+et savoirs transversaux.
+
+**Durée totale estimée : 20 à 25 heures** (selon le rythme de l'étudiant)
+
+### Prérequis techniques
+
+- Python 3.10 ou supérieur installé
+- Jupyter Notebook **ou** accès à [Google Colab](https://colab.research.google.com)
+  (tous les notebooks sont compatibles Colab — aucun fichier local requis)
+- Git installé (pour la Phase 3 / C3) — voir `GIT_BASH_GUIDE.md`
+- Un éditeur de texte (VS Code recommandé) ou un terminal
+
+---
+
+## Les 3 types de fichiers
+
+Chaque module contient **3 fichiers complémentaires** :
+
+| Fichier | Rôle | Quand l'utiliser |
+|---|---|---|
+| `XN.md` | Théorie, concept, risques, lien avec `jeu/` | Lire en premier, avant le notebook |
+| `XN.ipynb` | Exercice guidé pas-à-pas, cellules à compléter | Faire après avoir lu le `.md` |
+| `XN_corrige.py` | Corrigé en 3 niveaux progressifs | Consulter après avoir essayé |
+
+**Flux recommandé pour chaque module :**
+```
+Lire XN.md → Ouvrir XN.ipynb → Compléter les TODO → Vérifier avec les assert → Consulter XN_corrige.py si besoin
+```
+
+---
+
+## Tableau des modules
+
+| Phase | ID | Titre | Durée | Prérequis | Fichier cible `jeu/` |
+|---|---|---|---|---|---|
+| **Phase 0** | A0 | Lire les règles, représenter le jeu | 30 min | — | *(aucun)* |
+| **Phase 0** | A1 | Identifier les entités et leurs attributs | 45 min | A0 | `logique.py` |
+| **Phase 0** | A2 | Choisir ses structures de données | 45 min | A1 | `logique.py` |
+| **Phase 0** | A3 | Pseudo-code d'un tour de jeu complet | 60 min | A0–A2 | `console.py` |
+| **Phase 1** | B0 | Tracer un programme à la main | 60 min | A0–A3 | `logique.py` |
+| **Phase 2** | P01 | `config.py` — lire la configuration | 45 min | A2 | `config.py`, `config.json` |
+| **Phase 2** | P02 | `logique.py` — fonctions factory | 60 min | A1, P01 | `logique.py` |
+| **Phase 2** | P03 | `affichage.py` — rendu de la grille | 45 min | A0, P02 | `affichage.py` |
+| **Phase 2** | P04 | `logique.py` — validation de mouvement | 60 min | B0, P02 | `logique.py` |
+| **Phase 2** | P05 | `logique.py` — exécution nominale | 60 min | P04 | `logique.py` |
+| **Phase 2** | P06 | `logique.py` — cas limites | 90 min | P05 | `logique.py` |
+| **Phase 2** | P07 | `console.py` — phase J1 (drones) | 60 min | P04, P05 | `console.py` |
+| **Phase 2** | P08 | `console.py` — phase J2 + météo | 60 min | P07, P06 | `console.py` |
+| **Phase 2** | P09 | `main.py` — assemblage final | 45 min | P01–P08 | `main.py` |
+| **Phase 3** | C0 | Architecture multi-fichiers | 30 min | P09 | *(transversal)* |
+| **Phase 3** | C1 | Configuration externe | 30 min | P01 | `config.json` |
+| **Phase 3** | C2 | Déboguer avec le logger | 45 min | P05 | `logger.py` |
+| **Phase 3** | C3 | Versionner avec Git | 45 min | P09 | *(transversal)* |
+| **Phase 3** | C4 | Tester ses fonctions | 45 min | P04 | `tests/` |
+
+---
+
+## Structure du dossier
+
+```
+formation/
+├── README.md                        ← ce fichier
+├── phase_0/
+│   ├── A0_regles_et_representation/
+│   ├── A1_entites_et_attributs/
+│   ├── A2_choix_structures_donnees/
+│   └── A3_pseudocode_tour_de_jeu/
+├── phase_1/
+│   └── B0_tracer_a_la_main/
+├── phase_2/
+│   ├── P01_config/
+│   ├── P02_entites/
+│   ├── P03_affichage/
+│   ├── P04_validation/
+│   ├── P05_execution_nominal/
+│   ├── P06_cas_limites/
+│   ├── P07_console_j1/
+│   ├── P08_console_j2/
+│   └── P09_assemblage/
+└── phase_3/
+    ├── C0_architecture_multifichiers/
+    ├── C1_configuration_externe/
+    ├── C2_deboguer_avec_logger/
+    ├── C3_versionner_git/
+    └── C4_tester_ses_fonctions/
+```
+
+---
+
+## Ressources existantes à consulter en parallèle
+
+| Ressource | Utilité |
+|---|---|
+| `cours/` | 10 modules de cours théoriques (00 → 09) |
+| `exercices/` | 9 exercices `.py` (ex_01 → ex_09) |
+| `corrections/` | Corrigés des exercices |
+| `notebooks/` | Notebooks Jupyter complémentaires |
+| `REFERENTIEL_ENSEIGNEMENTS.md` | Référentiel complet des notions Python du jeu |
+| `GUIDE_FORMATEUR.md` | Guide pédagogique pour l'enseignant |
+| `GIT_BASH_GUIDE.md` | Guide Git pour les étudiants |
+
+---
+
+## Destination finale
+
+À l'issue du parcours, l'étudiant aura écrit **l'intégralité du code** présent
+dans le dossier `jeu/` :
+
+```
+jeu/
+├── main.py       ← P09
+├── logique.py    ← P02, P04, P05, P06
+├── console.py    ← P07, P08
+├── affichage.py  ← P03
+├── config.py     ← P01
+├── config.json   ← P01, C1
+└── logger.py     ← C2
+```
+
+Bonne progression ! 🚁
