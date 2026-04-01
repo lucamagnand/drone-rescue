@@ -1,107 +1,130 @@
 # =============================================================================
-# Corrigé — Module P01 : config.py
+# Corrigé — Module P01 : Configuration externe
 # Fichier cible dans jeu/ : jeu/config.py + jeu/config.json
 # =============================================================================
-#
-# NIVEAU 1 — Solution minimale
+
+
+# NIVEAU 1 — Solution minimale (le strict nécessaire pour que ça fonctionne)
 # -----------------------------------------------------------------------------
+# On lit config.json avec un chemin relatif simple.
+# Fonctionne uniquement si on lance Python depuis le dossier qui contient ce script.
+
 import json
 
-# Simulation de config.json (en production, lire depuis le fichier)
-CONFIG_JSON = {
-    "GRILLE_TAILLE": 12,
-    "BATTERIE_MAX": 20,
-    "NB_DRONES": 2,
-    "MAX_TOURS": 30,
-    "MAX_DEPL_J1": 3,
-    "MAX_DEPL_J2": 2,
-    "NB_SURVIVANTS": 3,
-    "PROPAGATION_TOURS": 5,
-    "PROBA_PROPAGATION": 0.3,
-    "HOPITAL_COL": 0,
-    "HOPITAL_LIG": 0,
-}
+with open("config.json", encoding="utf-8") as _f:
+    _cfg = json.load(_f)
+
+# Constantes minimales pour démarrer
+GRILLE_TAILLE = _cfg["grille"]["lignes"]
+NB_DRONES     = _cfg["drones"]["nb_max_j1"]
+BATTERIE_MAX  = _cfg["drones"]["batterie_max"]
+BATTERIE_INIT = _cfg["drones"]["batterie_depart"]
+NB_TOURS_MAX  = 40  # valeur codée en dur pour l'instant
 
 
-def charger_config_v1(config_dict):
-    """Charge la configuration depuis un dict et retourne les constantes."""
-    return {
-        "GRILLE_TAILLE":    config_dict.get("GRILLE_TAILLE", 12),
-        "BATTERIE_MAX":     config_dict.get("BATTERIE_MAX", 20),
-        "NB_DRONES":        config_dict.get("NB_DRONES", 2),
-        "MAX_TOURS":        config_dict.get("MAX_TOURS", 30),
-        "MAX_DEPL_J1":      config_dict.get("MAX_DEPL_J1", 3),
-        "MAX_DEPL_J2":      config_dict.get("MAX_DEPL_J2", 2),
-        "NB_SURVIVANTS":    config_dict.get("NB_SURVIVANTS", 3),
-        "PROPAGATION_TOURS": config_dict.get("PROPAGATION_TOURS", 5),
-        "PROBA_PROPAGATION": config_dict.get("PROBA_PROPAGATION", 0.3),
-        "HOPITAL_COL":      config_dict.get("HOPITAL_COL", 0),
-        "HOPITAL_LIG":      config_dict.get("HOPITAL_LIG", 0),
-    }
-
-
-cst = charger_config_v1(CONFIG_JSON)
-GRILLE_TAILLE = cst["GRILLE_TAILLE"]
-BATTERIE_MAX  = cst["BATTERIE_MAX"]
-print(f"Config chargée : grille {GRILLE_TAILLE}x{GRILLE_TAILLE}, batterie_max={BATTERIE_MAX}")
-
-
-# NIVEAU 2 — Enrichissement : lecture réelle depuis fichier + validation
+# NIVEAU 2 — Enrichissement (chemin robuste + toutes les constantes)
 # -----------------------------------------------------------------------------
+# On utilise os.path pour calculer le chemin absolu à partir de l'emplacement
+# de ce script, ce qui rend le code utilisable depuis n'importe quel répertoire.
+
+import json
 import os
 
+_DOSSIER = os.path.dirname(os.path.abspath(__file__))
+_CHEMIN_CONFIG = os.path.join(_DOSSIER, "config.json")
 
-def charger_config_fichier(chemin):
-    """Lit config.json depuis le système de fichiers.
+with open(_CHEMIN_CONFIG, encoding="utf-8") as _f:
+    _cfg = json.load(_f)
 
-    Args:
-        chemin (str): chemin absolu ou relatif vers config.json.
+# Grille
+GRILLE_TAILLE = _cfg["grille"]["lignes"]
 
-    Returns:
-        dict: constantes de configuration.
+# Drones
+NB_DRONES     = _cfg["drones"]["nb_max_j1"]
+BATTERIE_MAX  = _cfg["drones"]["batterie_max"]
+BATTERIE_INIT = _cfg["drones"]["batterie_depart"]
 
-    Raises:
-        SystemExit: si le fichier est manquant ou mal formé.
-    """
-    try:
-        with open(chemin, encoding="utf-8") as f:
-            donnees = json.load(f)
-    except FileNotFoundError:
-        print(f"ERREUR : config.json introuvable à {chemin}")
-        raise SystemExit(1)
-    except json.JSONDecodeError as e:
-        print(f"ERREUR : config.json mal formé — {e}")
-        raise SystemExit(1)
-    return charger_config_v1(donnees)
+# Tempêtes
+NB_TEMPETES = _cfg["tempetes"]["nb_max_j2"]
+PROB_METEO  = _cfg["tempetes"]["prob_meteo"]
+
+# Règles
+COUT_TRANSPORT   = _cfg["regles"]["cout_transport_survivant"]
+COUT_ZONE_X      = _cfg["regles"]["cout_entree_zone_x"]
+RECHARGE_HOPITAL = _cfg["regles"]["recharge_hopital_par_tour"]
+
+# Constantes non présentes dans JSON (calculées ou fixées)
+NB_SURVIVANTS       = 10
+NB_BATIMENTS        = 20
+NB_ZONES_DANGER     = 2
+MAX_DEPL_DRONE      = 3
+MAX_DEPL_TEMPETE    = 2
+NB_TOURS_MAX        = 40
+PROBA_PROPAGATION   = 0.5
+PROPAGATION_FREQUENCE = 2
 
 
-# NIVEAU 3 — Version intégrable dans jeu/config.py
+# NIVEAU 3 — Version complète intégrable dans jeu/ (identique au code réel)
 # -----------------------------------------------------------------------------
+# Version identique à jeu/config.py, avec les lettres et directions exposées.
 
-# En production, ce module est importé par tous les autres :
-#   from config import GRILLE_TAILLE, BATTERIE_MAX, MAX_DEPL_J1
-#
-# Structure réelle de jeu/config.py :
-#
-#   import json, os
-#   _DIR = os.path.dirname(os.path.abspath(__file__))
-#   _PATH = os.path.join(_DIR, 'config.json')
-#   with open(_PATH, encoding='utf-8') as f:
-#       _C = json.load(f)
-#   GRILLE_TAILLE   = _C.get('GRILLE_TAILLE', 12)
-#   BATTERIE_MAX    = _C.get('BATTERIE_MAX', 20)
-#   NB_DRONES       = _C.get('NB_DRONES', 2)
-#   MAX_TOURS       = _C.get('MAX_TOURS', 30)
-#   MAX_DEPL_J1     = _C.get('MAX_DEPL_J1', 3)
-#   MAX_DEPL_J2     = _C.get('MAX_DEPL_J2', 2)
-#   NB_SURVIVANTS   = _C.get('NB_SURVIVANTS', 3)
-#   HOPITAL_COL     = _C.get('HOPITAL_COL', 0)
-#   HOPITAL_LIG     = _C.get('HOPITAL_LIG', 0)
+import json
+import os
 
+_DOSSIER = os.path.dirname(os.path.abspath(__file__))
+_CHEMIN_CONFIG = os.path.join(_DOSSIER, "config.json")
+
+with open(_CHEMIN_CONFIG, encoding="utf-8") as _f:
+    _cfg = json.load(_f)
+
+# ── Grille ───────────────────────────────────────────────────────────────────
+GRILLE_TAILLE = _cfg["grille"]["lignes"]
+
+# ── Drones ───────────────────────────────────────────────────────────────────
+NB_DRONES     = _cfg["drones"]["nb_max_j1"]
+BATTERIE_MAX  = _cfg["drones"]["batterie_max"]
+BATTERIE_INIT = _cfg["drones"]["batterie_depart"]
+
+# ── Tempêtes ──────────────────────────────────────────────────────────────────
+NB_TEMPETES = _cfg["tempetes"]["nb_max_j2"]
+PROB_METEO  = _cfg["tempetes"]["prob_meteo"]
+
+# ── Règles de jeu ─────────────────────────────────────────────────────────────
+COUT_TRANSPORT   = _cfg["regles"]["cout_transport_survivant"]
+COUT_ZONE_X      = _cfg["regles"]["cout_entree_zone_x"]
+RECHARGE_HOPITAL = _cfg["regles"]["recharge_hopital_par_tour"]
+
+# ── Placement initial ─────────────────────────────────────────────────────────
+NB_SURVIVANTS       = 10
+NB_BATIMENTS        = 20
+NB_ZONES_DANGER     = 2
+
+# ── Limites de déplacement par tour ──────────────────────────────────────────
+MAX_DEPL_DRONE   = 3
+MAX_DEPL_TEMPETE = 2
+
+# ── Tour maximum ─────────────────────────────────────────────────────────────
+NB_TOURS_MAX = 40
+
+# ── Propagation des zones X ───────────────────────────────────────────────────
+PROBA_PROPAGATION     = 0.5
+PROPAGATION_FREQUENCE = 2
+
+# ── Lettres de colonnes ───────────────────────────────────────────────────────
+LETTRES = _cfg["lettres"][:GRILLE_TAILLE]
+
+# ── Directions ────────────────────────────────────────────────────────────────
+DIRECTIONS = _cfg["directions"]
+
+
+# -----------------------------------------------------------------------------
+# Vérification rapide (à exécuter directement : python P01_corrige.py)
+# -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    print("\n--- Test P01 ---")
-    c = charger_config_v1(CONFIG_JSON)
-    assert c["GRILLE_TAILLE"] == 12
-    assert c["BATTERIE_MAX"] == 20
-    assert c["MAX_DEPL_J1"] == 3
-    print("✅ Config chargée et validée")
+    print(f"GRILLE_TAILLE    = {GRILLE_TAILLE}")
+    print(f"NB_DRONES        = {NB_DRONES}")
+    print(f"BATTERIE_MAX     = {BATTERIE_MAX}")
+    print(f"NB_TOURS_MAX     = {NB_TOURS_MAX}")
+    print(f"LETTRES          = {LETTRES}")
+    print(f"DIRECTIONS       = {DIRECTIONS}")
+    print("✅ config.py chargé avec succès.")
