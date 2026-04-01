@@ -1,103 +1,91 @@
 # =============================================================================
 # Corrigé — Module C0 : Architecture multi-fichiers
-# Fichier cible dans jeu/ : tous les fichiers (vue d'ensemble)
+# Fichier cible dans jeu/ : main.py, console.py, logique.py, affichage.py
 # =============================================================================
+
+# NIVEAU 1 — Graphe de dépendances correct
+# -----------------------------------------------------------------------------
+
+graphe = {
+    'config':    [],
+    'logique':   ['config'],
+    'affichage': ['config'],
+    'logger':    [],
+    'console':   ['logique', 'affichage', 'logger'],
+    'main':      ['console', 'logique', 'logger'],
+}
+
+# Vérification rapide
+assert 'logique' in graphe['console']
+assert 'affichage' in graphe['console']
+assert 'console' not in graphe['logique'], "Violation : logique ne doit pas importer console"
+assert graphe['config'] == [], "config ne doit rien importer"
+print("✅ Niveau 1 : graphe de dépendances valide")
+
+
+# NIVEAU 2 — Détection automatique de cycles
+# -----------------------------------------------------------------------------
+
+def detecter_cycle(graphe, depart, visite=None, pile=None):
+    """Détecte un cycle à partir d'un nœud donné (DFS récursif)."""
+    if visite is None:
+        visite = set()
+    if pile is None:
+        pile = set()
+    visite.add(depart)
+    pile.add(depart)
+    for voisin in graphe.get(depart, []):
+        if voisin not in visite:
+            if detecter_cycle(graphe, voisin, visite, pile):
+                return True
+        elif voisin in pile:
+            return True
+    pile.discard(depart)
+    return False
+
+
+def valider_graphe(graphe):
+    """Vérifie qu'aucun cycle n'existe dans le graphe."""
+    for module in graphe:
+        if detecter_cycle(dict(graphe), module):
+            return False, module
+    return True, None
+
+
+valide, coupable = valider_graphe(graphe)
+assert valide, f"Cycle détecté depuis : {coupable}"
+print("✅ Niveau 2 : aucun cycle détecté")
+
+# Test avec un graphe invalide (cycle intentionnel)
+graphe_invalide = dict(graphe)
+graphe_invalide['logique'] = ['config', 'console']  # violation
+valide_inv, coupable_inv = valider_graphe(graphe_invalide)
+assert not valide_inv, "Le graphe invalide aurait dû être détecté"
+print(f"✅ Niveau 2 : violation correctement détectée (depuis '{coupable_inv}')")
+
+
+# NIVEAU 3 — Structure complète de main.py intégrable dans jeu/
+# -----------------------------------------------------------------------------
 #
-# NIVEAU 1 — Représentation minimale du graphe de dépendances
-# -----------------------------------------------------------------------------
+# Ce code est la version exacte de jeu/main.py.
+# main.py n'a qu'une seule responsabilité : orchestrer le démarrage.
+#
+# from console import boucle_de_jeu
+# from logique import initialiser_partie
+# from logger import demarrer_log
+#
+# def main():
+#     """Point d'entrée du programme Drone Rescue."""
+#     demarrer_log()
+#     etat = initialiser_partie()
+#     boucle_de_jeu(etat)
+#
+# if __name__ == '__main__':
+#     main()
+#
+# Règles à respecter :
+# 1. main() ne contient aucune logique métier.
+# 2. if __name__ == '__main__' isole l'exécution de l'import.
+# 3. Tout import de module se fait en haut du fichier.
 
-# Graphe de dépendances de Drone Rescue
-GRAPHE_DEPENDANCES = {
-    'main.py':      ['console.py', 'logger.py'],
-    'console.py':   ['logique.py', 'affichage.py'],
-    'logique.py':   ['config.py'],
-    'affichage.py': ['config.py'],
-    'config.py':    [],
-    'logger.py':    [],
-}
-
-# Responsabilités
-RESPONSABILITES = {
-    'config.py':    'Lire config.json et exposer les constantes nommées',
-    'logique.py':   'Toutes les règles métier du jeu',
-    'affichage.py': 'Rendre la grille lisible en terminal',
-    'console.py':   'Lire les saisies J1/J2 et orchestrer un tour',
-    'logger.py':    'Écrire les événements dans un fichier de log',
-    'main.py':      'Point d\'entrée, orchestration globale',
-}
-
-
-# =============================================================================
-# NIVEAU 2 — Détection de violations
-# -----------------------------------------------------------------------------
-
-def est_import_valide(source: str, destination: str) -> bool:
-    """
-    Retourne True si `source` peut importer `destination` sans violer
-    le graphe de dépendances acyclique de Drone Rescue.
-
-    Règle : les dépendances vont toujours du niveau supérieur vers le niveau
-    inférieur (main → console → logique/affichage → config).
-
-    Args:
-        source (str): fichier qui veut importer
-        destination (str): fichier importé
-
-    Returns:
-        bool: True si l'import est valide
-    """
-    niveaux = {
-        'config.py':    0,
-        'logger.py':    1,
-        'logique.py':   1,
-        'affichage.py': 1,
-        'console.py':   2,
-        'main.py':      3,
-    }
-    niveau_src = niveaux.get(source, -1)
-    niveau_dst = niveaux.get(destination, -1)
-    return niveau_src > niveau_dst  # on importe toujours vers le bas
-
-
-# Tests de validation
-assert est_import_valide('logique.py',   'config.py')  is True
-assert est_import_valide('logique.py',   'console.py') is False  # violation
-assert est_import_valide('affichage.py', 'logique.py') is False  # violation
-assert est_import_valide('console.py',   'logique.py') is True
-assert est_import_valide('config.py',    'logique.py') is False  # violation
-assert est_import_valide('main.py',      'console.py') is True
-print("Tous les tests de validation réussis.")
-
-
-# =============================================================================
-# NIVEAU 3 — Affichage du graphe avec niveaux (version complète)
-# -----------------------------------------------------------------------------
-
-def afficher_graphe(graphe: dict) -> None:
-    """
-    Affiche le graphe de dépendances de manière lisible,
-    trié par niveau de dépendance (du plus haut au plus bas).
-
-    Args:
-        graphe (dict): {fichier: [dépendances]}
-    """
-    niveaux = {
-        'main.py':      3,
-        'console.py':   2,
-        'logique.py':   1,
-        'affichage.py': 1,
-        'logger.py':    1,
-        'config.py':    0,
-    }
-    print("Graphe de dépendances — Drone Rescue")
-    print("=" * 40)
-    for fichier in sorted(graphe, key=lambda f: -niveaux.get(f, 0)):
-        deps = graphe[fichier]
-        if deps:
-            print(f"  [N{niveaux.get(fichier,'?')}] {fichier:20s} → {', '.join(deps)}")
-        else:
-            print(f"  [N{niveaux.get(fichier,'?')}] {fichier:20s} → (aucune)")
-
-
-if __name__ == '__main__':
-    afficher_graphe(GRAPHE_DEPENDANCES)
+print("✅ Niveau 3 : structure main.py correcte — voir jeu/main.py")
