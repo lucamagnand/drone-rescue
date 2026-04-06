@@ -1,6 +1,6 @@
 # Guide formateur — Drone Rescue Python
 
-> Mise à jour : 30 mars 2026 — post-PR #9
+> Mise à jour : 6 avril 2026
 
 ---
 
@@ -23,7 +23,7 @@ Le but de J1 est de sauver tous les survivants avant la fin du nombre de tours.
 ## Architecture du repo
 
 ```
-drone-rescue-python/
+drone-rescue/
 ├── jeu/                  Moteur du jeu (ne pas modifier sans raison)
 │   ├── config.py         Paramètres officiels (TAILLE, COUT, NB_DRONES…)
 │   ├── config.json       Même paramètres au format JSON
@@ -32,28 +32,43 @@ drone-rescue-python/
 │   ├── console.py        Boucle de jeu, saisie J1/J2, architecture parser→valider→exécuter
 │   ├── logger.py         Journalisation fichier (partie.log, resultats.txt)
 │   └── main.py           Point d'entrée : python main.py
-├── cours/                10 fichiers .md (00_introduction → 09_assemblage_final + annexe)
-├── exercices/            ex_01.py → ex_09_assemblage.py  (squelettes à compléter)
-├── corrections/          corr_01.py → corr_09_assemblage.py  (solutions commentées)
-├── notebooks/            nb_01 → nb_09  (Jupyter/Colab, 8 cellules par notebook)
-└── tests/                test_logique.py  (pytest — validation du moteur)
+├── formation/            ← Parcours pédagogique canonique (point d'entrée étudiants)
+├── cours/                10 fichiers .md — ressource satellite de formation/
+├── exercices/            ex_01.py → ex_09_assemblage.py — ressource satellite
+├── corrections/          corr_01.py → corr_09_assemblage.py — ressource satellite
+├── notebooks/            nb_01 → nb_09 — ressource satellite
+└── tests/                test_logique.py (pytest — validation du moteur)
 ```
+
+> Les dossiers `cours/`, `exercices/`, `corrections/`, `notebooks/` sont des **ressources satellites**.
+> Chaque module de `formation/` indique dans sa section « Ressources associées » quels fichiers utiliser.
+> Ne pas demander aux étudiants de parcourir ces dossiers indépendamment.
 
 ---
 
-## Progression pédagogique recommandée
+## Parcours pédagogique
 
-| Module | Notebook | Cours | Exercice | Concepts clés |
-|--------|----------|-------|----------|---------------|
-| 01 | nb_01 | 01_structures | ex_01 | listes, tuples, dicts simples |
-| 02 | nb_02 | 02_boucles | ex_02 | for, while, break, continue |
-| 03 | nb_03 | 03_fonctions | ex_03 | def, return, docstring |
-| 04 | nb_04 | 04_modules_io | ex_04 | import, random, json, open |
-| 05 | nb_05 | 05_dictionnaires_avances | ex_05 | dicts imbriqués, sets, .items() |
-| 06 | nb_06 | 06_grille_affichage | ex_06 | grille ASCII, Chebyshev, ljust/rjust |
-| 07 | nb_07 | 07_logique_jeu | ex_07 | validation, coûts, all() |
-| 08 | nb_08 | 08_console_log | ex_08 | parser→valider→exécuter, open() |
-| 09 | nb_09 | 09_assemblage_final | ex_09 | assemblage de tout le projet |
+### Point d'entrée unique : `formation/README.md`
+
+Le parcours est découpé en 4 phases :
+
+| Phase | ID | Titre | Objectif |
+|---|---|---|---|
+| **Phase 0 — Analyser** | A0–A3 | Règles, entités, structures, pseudo-code | Comprendre le jeu sans coder |
+| **Phase 1 — Raisonner** | B0–B2 | Tracer, simuler, cas limites | Penser comme le programme |
+| **Phase 2 — Implémenter** | P01–P09 | Fichier par fichier jusqu'à `main.py` | Produire le code du jeu |
+| **Phase 3 — Consolider** | C0–C4 | Architecture, config, debug, git, tests | Solidifier et professionnaliser |
+
+### La Phase 1 est la charnère cognitive
+
+La Phase 1 (B0–B2) est le moment où l'étudiant apprend à **raisonner comme un programme** avant de coder.
+C'est souvent la phase la plus négligée, et la plus déterminante pour la suite.
+
+| Module | Objectif spécifique |
+|---|---|
+| B0 — Tracer à la main | Suivre l'état du programme pas à pas, sans exécuter |
+| B1 — Simuler des fonctions | Donner des entrées, calculer la sortie attendue à la main |
+| B2 — Repérer les cas limites | Anticiper les valeurs à la frontière : grille, batterie, collision |
 
 ---
 
@@ -61,9 +76,13 @@ drone-rescue-python/
 
 | Paramètre | Valeur | Fichier |
 |-----------|--------|---------|
-| Taille grille | 10×10 | `config.py` |
-| Nombre de drones | 3 | `config.py` |
-| Nombre de tempêtes | 2 | `config.py` |
+| Taille grille | **12×12** | `config.py` / `config.json` |
+| Colonnes | A → L (12 lettres) | affichage |
+| Lignes | 1 → 12 | affichage |
+| Nombre de drones | 6 | `config.py` |
+| Nombre de tempêtes | 4 | `config.py` |
+| Nombre de survivants | 10 | `config.py` |
+| Bâtiments | ~20 (aléatoire) | `config.py` |
 | Batterie initiale | 10 | `config.py` |
 | Batterie max | 20 | `config.py` |
 | Coût déplacement normal | 1 | `config.py` |
@@ -83,18 +102,18 @@ C'est le point le plus source de confusion pour les apprenants :
 
 ```python
 # INTERNE (code) — entiers 0-based
-col: int   # 0 = colonne A,  9 = colonne J
-lig: int   # 0 = ligne 1,   9 = ligne 10
+col: int   # 0 = colonne A,  11 = colonne L  (grille 12x12)
+lig: int   # 0 = ligne 1,   11 = ligne 12
 
 # AFFICHAGE (cours, exercices, log) — lettre + numéro 1-based
 # Exemples :
-#   (col=0, lig=0) → 'A1'
-#   (col=1, lig=2) → 'B3'
-#   (col=9, lig=9) → 'J10'
+#   (col=0,  lig=0)  → 'A1'
+#   (col=1,  lig=2)  → 'B3'
+#   (col=11, lig=11) → 'L12'
 
 # Conversion :
-col = LETTRES.index(lettre)   # 'B' → 1
-lig = num - 1                 # 3   → 2
+col = LETTRES.index(lettre)   # 'B'  → 1
+lig = num - 1                 # 3    → 2
 ```
 
 > ⚠️ Dans les exercices et notebooks, toujours utiliser la notation affichage (`B3`).
@@ -141,6 +160,7 @@ python tests/test_logique.py
 - Ne pas introduire de classes (`class Drone`) — le projet est volontairement sans POO
 - Ne pas utiliser `ord()`/`chr()` pour les conversions de colonnes — utiliser `LETTRES.index()` et `LETTRES[col]`
 - Ne pas mélanger coordonnées 0-based et 1-based dans les exemples
+- Ne pas demander aux étudiants de consulter `cours/` ou `exercices/` directement — les référer via les modules `formation/`
 
 ### ✅ Bonnes pratiques à montrer
 - Fonctions fabriquantes avec `return {…}` (pattern dict-as-object)
@@ -149,9 +169,10 @@ python tests/test_logique.py
 - Architecture parser → valider → exécuter dans les boucles de saisie
 
 ### Erreurs classiques des apprenants
-- Confondre `grille[lig][col]` avec `grille[col][lig]` (lignes d'abord !)
+- Confondre `grille[lig][col]` avec `grille[col][lig]` (lignes d'abord !)
 - Oublier le `+ 1` dans l'affichage ou le `- 1` dans le parsing
 - Modifier un dict sans vérifier la validité du mouvement d'abord
+- Rester bloqué en Phase 1 (B0–B2) par manque de confiance : les encourager à tracer sur papier
 
 ---
 
@@ -161,4 +182,4 @@ python tests/test_logique.py
 - `jeu/logique.py` — le moteur est validé par les tests
 - `corrections/` — référence pour l'évaluation
 
-*MAJ : 30 mars 2026 — PRs 1→9 mergées. Projet complet 100%.*
+*MAJ : 6 avril 2026 — grille 12×12, parcours canonique formation/, Phase 1 B0–B2.*
