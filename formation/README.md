@@ -14,7 +14,7 @@ du premier contact avec le jeu jusqu'à l'écriture complète du code source.
 
 Les dossiers `cours/`, `notebooks/`, `exercices/`, `corrections/` et `tests/` sont des
 **ressources satellites** : chaque module de ce parcours indique dans sa section
-« Ressources associées » quels fichiers consulter et à quel moment.
+« Ressources associées » quels fichiers consulter et à quel moment.
 
 > 📖 **Étudiant** → commence ici, module par module, dans l'ordre du tableau.
 > 🏫 **Formateur** → commence par `GUIDE_FORMATEUR.md` pour le calage pédagogique.
@@ -29,17 +29,17 @@ Chaque module suit la même séquence :
 
 | Étape | Fichier | Action |
 |---|---|---|
-| 📖 **Lire** | `XN.md` | Comprendre le concept, les risques, le lien avec `jeu/` |
-| ⚙️ **Pratiquer** | `XN.ipynb` | Compléter les `TODO`, vérifier avec les `assert` |
-| ✅ **Comparer** | `XN_corrige.py` | Consulter le corrigé après avoir essayé |
-| 🔍 **Approfondir** | ressources associées | Cours, exercices, notebooks, corrections selon le module |
+| 📖 **Lire** | `XN.md` | Comprendre le concept, les risques, le lien avec `jeu/` |
+| ⚙️ **Pratiquer** | `XN.ipynb` | Compléter les `TODO`, vérifier avec les `assert` |
+| ✅ **Comparer** | `XN_corrige.py` | Consulter le corrigé après avoir essayé |
+| 🔍 **Approfondir** | ressources associées | Cours, exercices, notebooks, corrections selon le module |
 
 **Flux recommandé :**
 ```
 Lire XN.md → Ouvrir XN.ipynb → Compléter les TODO → Vérifier avec assert → Comparer avec XN_corrige.py
 ```
 
-> ⚠️ Ne pas ouvrir le corrigé avant d'avoir essayé. La lutte cognitive est le moteur de l'apprentissage.
+> ⚠️ Ne pas ouvrir le corrigé avant d'avoir essayé. La lutte cognitive est le moteur de l'apprentissage.
 
 ---
 
@@ -93,8 +93,8 @@ formation/
 │   └── A3_pseudocode_tour_de_jeu/
 ├── phase_1/
 │   ├── B0_tracer_a_la_main/
-│   ├── B1_simuler_fonctions_a_la_main/     ← à créer
-│   └── B2_reperer_cas_limites/             ← à créer
+│   ├── B1_simuler_fonctions_a_la_main/
+│   └── B2_reperer_cas_limites/
 ├── phase_2/
 │   ├── P01_config/
 │   ├── P02_entites/
@@ -117,7 +117,7 @@ formation/
 
 ## Ressources satellites (ne pas utiliser comme point d'entrée)
 
-Ces dossiers sont **appelés depuis chaque module** via la section « Ressources associées ».
+Ces dossiers sont **appelés depuis chaque module** via la section « Ressources associées ».
 Ne pas les parcourir indépendamment sans suivre le parcours.
 
 | Ressource | Utilité |
